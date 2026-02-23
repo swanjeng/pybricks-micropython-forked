@@ -463,7 +463,7 @@ pbio_error_t pbio_servo_get_state_user(pbio_servo_t *srv, int32_t *angle, int32_
 
     // Don't allow user command if update loop not registered.
     if (!pbio_servo_update_loop_is_running(srv)) {
-        return PBIO_ERROR_INVALID_OP;
+        return PBIO_ERROR_NO_DEV;
     }
 
     // Get servo state.
@@ -536,7 +536,7 @@ pbio_error_t pbio_servo_stop(pbio_servo_t *srv, pbio_control_on_completion_t on_
 
     // Don't allow new user command if update loop not registered.
     if (!pbio_servo_update_loop_is_running(srv)) {
-        return PBIO_ERROR_INVALID_OP;
+        return PBIO_ERROR_NO_DEV;
     }
 
     // Stop parent object that uses this motor, if any.
@@ -591,7 +591,7 @@ static pbio_error_t pbio_servo_run_time_common(pbio_servo_t *srv, int32_t speed,
 
     // Don't allow new user command if update loop not registered.
     if (!pbio_servo_update_loop_is_running(srv)) {
-        return PBIO_ERROR_INVALID_OP;
+        return PBIO_ERROR_NO_DEV;
     }
 
     // Stop parent object that uses this motor, if any.
@@ -691,7 +691,7 @@ pbio_error_t pbio_servo_run_target(pbio_servo_t *srv, int32_t speed, int32_t tar
 
     // Don't allow new user command if update loop not registered.
     if (!pbio_servo_update_loop_is_running(srv)) {
-        return PBIO_ERROR_INVALID_OP;
+        return PBIO_ERROR_NO_DEV;
     }
 
     // Stop parent object that uses this motor, if any.
@@ -741,7 +741,7 @@ pbio_error_t pbio_servo_run_angle(pbio_servo_t *srv, int32_t speed, int32_t angl
 
     // Don't allow new user command if update loop not registered.
     if (!pbio_servo_update_loop_is_running(srv)) {
-        return PBIO_ERROR_INVALID_OP;
+        return PBIO_ERROR_NO_DEV;
     }
 
     // Stop parent object that uses this motor, if any.
@@ -786,7 +786,7 @@ pbio_error_t pbio_servo_track_target(pbio_servo_t *srv, int32_t target) {
 
     // Don't allow new user command if update loop not registered.
     if (!pbio_servo_update_loop_is_running(srv)) {
-        return PBIO_ERROR_INVALID_OP;
+        return PBIO_ERROR_NO_DEV;
     }
 
     // Stop parent object that uses this motor, if any.
@@ -816,7 +816,7 @@ pbio_error_t pbio_servo_is_stalled(pbio_servo_t *srv, bool *stalled, uint32_t *s
     if (!pbio_servo_update_loop_is_running(srv)) {
         *stalled = false;
         *stall_duration = 0;
-        return PBIO_ERROR_INVALID_OP;
+        return PBIO_ERROR_NO_DEV;
     }
 
     // If control is active, this provides the most accurate stall detection.
@@ -856,7 +856,7 @@ pbio_error_t pbio_servo_get_load(pbio_servo_t *srv, int32_t *load) {
     // Don't allow access if update loop not registered.
     if (!pbio_servo_update_loop_is_running(srv)) {
         *load = 0;
-        return PBIO_ERROR_INVALID_OP;
+        return PBIO_ERROR_NO_DEV;
     }
 
     // Get passive actuation type.

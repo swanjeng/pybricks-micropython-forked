@@ -409,7 +409,7 @@ pbio_error_t pbio_drivebase_stop(pbio_drivebase_t *db, pbio_control_on_completio
 
     // Don't allow new user command if update loop not registered.
     if (!pbio_drivebase_update_loop_is_running(db)) {
-        return PBIO_ERROR_INVALID_OP;
+        return PBIO_ERROR_NO_DEV;
     }
 
     // We're asked to stop, so continuing makes no sense.
@@ -555,7 +555,7 @@ static pbio_error_t pbio_drivebase_drive_relative(pbio_drivebase_t *db, int32_t 
 
     // Don't allow new user command if update loop not registered.
     if (!pbio_drivebase_update_loop_is_running(db)) {
-        return PBIO_ERROR_INVALID_OP;
+        return PBIO_ERROR_NO_DEV;
     }
 
     // Stop servo control in case it was running.
@@ -666,7 +666,7 @@ pbio_error_t pbio_drivebase_drive_curve(pbio_drivebase_t *db, int32_t radius, in
 pbio_error_t pbio_drivebase_drive_turn(pbio_drivebase_t *db, int32_t angle, bool absolute, pbio_control_on_completion_t on_completion) {
     // Don't allow new user command if update loop not registered.
     if (!pbio_drivebase_update_loop_is_running(db)) {
-        return PBIO_ERROR_INVALID_OP;
+        return PBIO_ERROR_NO_DEV;
     }
 
     // Stop servo control in case it was running.
@@ -799,7 +799,7 @@ static pbio_error_t pbio_drivebase_drive_time_common(pbio_drivebase_t *db, int32
 
     // Don't allow new user command if update loop not registered.
     if (!pbio_drivebase_update_loop_is_running(db)) {
-        return PBIO_ERROR_INVALID_OP;
+        return PBIO_ERROR_NO_DEV;
     }
 
     // Stop servo control in case it was running.
@@ -1043,7 +1043,7 @@ pbio_error_t pbio_drivebase_set_drive_settings(pbio_drivebase_t *db, int32_t dri
  * @param [in]  db              The servo instance.
  * @param [out] stalled         True if stalled, false if not.
  * @param [out] stall_duration  For how long it has been stalled (ms).
- * @return                      Error code. ::PBIO_ERROR_INVALID_OP if update
+ * @return                      Error code. ::PBIO_ERROR_NO_DEV if update
  *                              loop not running, else ::PBIO_SUCCESS
  */
 pbio_error_t pbio_drivebase_is_stalled(pbio_drivebase_t *db, bool *stalled, uint32_t *stall_duration) {
@@ -1052,7 +1052,7 @@ pbio_error_t pbio_drivebase_is_stalled(pbio_drivebase_t *db, bool *stalled, uint
     if (!pbio_drivebase_update_loop_is_running(db)) {
         *stalled = false;
         *stall_duration = 0;
-        return PBIO_ERROR_INVALID_OP;
+        return PBIO_ERROR_NO_DEV;
     }
 
     pbio_error_t err;

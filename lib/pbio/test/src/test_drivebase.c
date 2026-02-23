@@ -161,7 +161,7 @@ static pbio_error_t test_drivebase_basics(pbio_os_state_t *state, void *context)
     // Closing any motor should make drivebase operations invalid.
     tt_uint_op(pbio_dcmotor_close(srv_left->dcmotor), ==, PBIO_SUCCESS);
     PBIO_OS_AWAIT_MS(state, &timer, 100);
-    tt_uint_op(pbio_drivebase_is_stalled(db, &stalled, &stall_duration), ==, PBIO_ERROR_INVALID_OP);
+    tt_uint_op(pbio_drivebase_is_stalled(db, &stalled, &stall_duration), ==, PBIO_ERROR_NO_DEV);
 
 end:
 

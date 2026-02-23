@@ -6,8 +6,10 @@
 
 ### Fixed
 - Fixed EV3 screen animation not closing on user display actions ([support#2585]).
+- Fixed EV3 Touch Sensor not detected it is pressed while plugged in ([support#2589]).
 
-[support#1382]: https://github.com/pybricks/support/issues/2585
+[support#2585]: https://github.com/pybricks/support/issues/2585
+[support#2589]: https://github.com/pybricks/support/issues/2589
 
 ## [4.0.0b6] - 2026-02-19
 

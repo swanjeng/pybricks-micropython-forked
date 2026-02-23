@@ -15,10 +15,8 @@
 
 #define DEBUG 0
 #if DEBUG
-#include <stdio.h>
-#include <inttypes.h>
-#include <pbdrv/usb.h>
-#define debug_pr pbdrv_usb_debug_printf
+#include <pbio/debug.h>
+#define debug_pr pbio_debug
 #else
 #define debug_pr(...)
 #endif
@@ -77,7 +75,7 @@ typedef enum {
     /**
      * Device category is EV3 analog sensor.
      */
-    DCM_CATEGORY_EV3_ANALOG = PIN_STATE_ADC1_100_to_3100 | PIN_STATE_P2_HIGH,
+    DCM_CATEGORY_EV3_ANALOG = PIN_STATE_ADC1_100_to_3100 | PIN_STATE_P2_HIGH | PIN_STATE_MASK_P6,
     /**
      * No device is connected.
      */
@@ -148,6 +146,10 @@ static uint32_t pbio_port_dcm_get_mv(const pbdrv_ioport_pins_t *pins, uint8_t pi
  * @return                  The category type.
  */
 static pbio_port_dcm_category_t pbio_port_dcm_get_category(pbio_port_dcm_pin_state_t state) {
+
+    if ((state | PIN_STATE_MASK_P6) == DCM_CATEGORY_EV3_ANALOG) {
+        return DCM_CATEGORY_EV3_ANALOG;
+    }
 
     if ((state | PIN_STATE_MASK_P6) == DCM_CATEGORY_LUMP) {
         return DCM_CATEGORY_LUMP;

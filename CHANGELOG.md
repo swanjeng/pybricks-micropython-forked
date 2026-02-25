@@ -7,7 +7,9 @@
 ### Fixed
 - Fixed EV3 screen animation not closing on user display actions ([support#2585]).
 - Fixed EV3 Touch Sensor not detected it is pressed while plugged in ([support#2589]).
+- Fixed EV3 Large and Medium Motors sometimes not detected ([support#2536]).
 
+[support#2536]: https://github.com/pybricks/support/issues/2536
 [support#2585]: https://github.com/pybricks/support/issues/2585
 [support#2589]: https://github.com/pybricks/support/issues/2589
 

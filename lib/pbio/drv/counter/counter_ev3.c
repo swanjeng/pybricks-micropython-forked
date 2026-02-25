@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2025 The Pybricks Authors
+// Copyright (c) 2025-2026 The Pybricks Authors
 //
 // P5/6 IRQ config based on the ev3ninja/osek project:
 //   SPDX-License-Identifier: MPL-1.0
@@ -123,43 +123,40 @@ pbio_error_t pbdrv_counter_get_dev(uint8_t id, pbdrv_counter_dev_t **dev) {
 #define ADC_EV3_LARGE_0 (32)
 #define ADC_EV3_LARGE_1 (917)
 #define ADC_NXT_LARGE_1 (1014)
-#define ADC_MINDSENSORS_GLIDEWHEEL_0 (0)
-#define ADC_MINDSENSORS_GLIDEWHEEL_1 (1023)
-
-static bool adc_is_close(uint32_t adc, uint32_t reference) {
-    uint32_t error = adc > reference ? adc - reference : reference - adc;
-    return error <= 21;
-}
 
 /**
  * Gets the LEGO device type ID for an EV3 motor based on the ADC value.
  *
  * Each motor has two values (low and high) depending on the quadrature encoder
- * state. The large motor is 4000 in the high state but in the low state it
- * is indistinguishable from the EV3 large motor.
+ * state. The NXT motor in the high state is slightly different from the EV3
+ * large motor but it is indistinguishable in the low state, so we treat them
+ * the same.
  *
  * The original firmware uses a dynamic process to distinguish other non-motor
  * devices. This is not implemented here. It does not appear necessary for
  * motors.
  */
-static lego_device_type_id_t pbdrv_counter_ev3_get_type(uint16_t adc) {
+static lego_device_type_id_t pbdrv_counter_ev3_get_type(uint16_t adc, lego_device_type_id_t type_now) {
 
-    if (adc == ADC_MINDSENSORS_GLIDEWHEEL_0 || adc == ADC_MINDSENSORS_GLIDEWHEEL_1) {
-        return LEGO_DEVICE_TYPE_ID_EV3_LARGE_MOTOR;
+    uint32_t margin = 30;
+
+    // If currently connected, be strict about the exit condition, and don't
+    // allow changing to another type.
+    if (type_now != LEGO_DEVICE_TYPE_ID_NONE) {
+        return adc > ADC_EV3_NONE - margin && adc < ADC_EV3_NONE + margin ?
+               LEGO_DEVICE_TYPE_ID_NONE: type_now;
     }
 
-    if (adc_is_close(adc, ADC_EV3_MEDIUM_0) || adc_is_close(adc, ADC_EV3_MEDIUM_1)) {
-        return LEGO_DEVICE_TYPE_ID_EV3_MEDIUM_MOTOR;
+    // Otherwise, if not connected, be strict about the entry condition. This
+    // providing hysteresis to reduce the likelihood of false transitions.
+    if (adc > ADC_EV3_MEDIUM_0 + margin && adc < ADC_EV3_MEDIUM_1 - margin) {
+        return LEGO_DEVICE_TYPE_ID_NONE;
     }
 
-    if (adc_is_close(adc, ADC_EV3_LARGE_0) || adc_is_close(adc, ADC_EV3_LARGE_1) || adc_is_close(adc, ADC_NXT_LARGE_1)) {
-        // We can only detect the difference between NXT and EV3 motors 50% of
-        // the time, depending on the optical encoder state. So always return
-        // the same type for consistency. Their parameters are relatively close.
-        return LEGO_DEVICE_TYPE_ID_EV3_LARGE_MOTOR;
-    }
-
-    return LEGO_DEVICE_TYPE_ID_NONE;
+    // A medium or large motor was connected. Find out which one.
+    return adc < (ADC_EV3_MEDIUM_0 + ADC_EV3_LARGE_0) / 2 || adc > (ADC_EV3_MEDIUM_1 + ADC_EV3_LARGE_1) / 2 ?
+           LEGO_DEVICE_TYPE_ID_EV3_LARGE_MOTOR :
+           LEGO_DEVICE_TYPE_ID_EV3_MEDIUM_MOTOR;
 }
 
 #define PBDRV_COUNTER_EV3_TYPE_LOOP_TIME (10)
@@ -173,7 +170,7 @@ static void pbdrv_counter_ev3_update_type(pbdrv_counter_dev_t *dev) {
     // Get type detected now.
     uint16_t adc = 0;
     pbdrv_adc_get_ch(dev->adc_channel, &adc);
-    lego_device_type_id_t type_id = pbdrv_counter_ev3_get_type(adc);
+    lego_device_type_id_t type_id = pbdrv_counter_ev3_get_type(adc, dev->stable_type_id);
 
     // Update number of consecutive identical detections.
     if (dev->last_type_id == type_id && dev->position == dev->type_id_position) {
@@ -187,6 +184,9 @@ static void pbdrv_counter_ev3_update_type(pbdrv_counter_dev_t *dev) {
     // Update stable type if we have seen enough identical detections,
     // including none detections.
     if (dev->type_id_count >= PBDRV_COUNTER_EV3_TYPE_MIN_STABLE_COUNT) {
+        if (dev->stable_type_id != type_id) {
+            DEBUG_PRINT("Detected %d (was %d)\n", type_id, dev->stable_type_id);
+        }
         dev->stable_type_id = type_id;
     }
 }
@@ -211,7 +211,6 @@ static pbio_error_t pbdrv_counter_device_detect_process_thread(pbio_os_state_t *
 
     PBIO_OS_ASYNC_END(PBIO_SUCCESS);
 }
-
 
 pbio_error_t pbdrv_counter_assert_type(pbdrv_counter_dev_t *dev, lego_device_type_id_t *expected_type_id) {
 

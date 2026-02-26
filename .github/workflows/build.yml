@@ -172,13 +172,6 @@ jobs:
     - run: poetry install --only=build
     - name: Build and test
       run: poetry run ./test-virtualhub.sh
-    - name: Coveralls
-      uses: coverallsapp/github-action@v2
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        file: bricks/virtualhub/build-coverage/lcov.info
-        flag-name: virtualhub
-        parallel: true
 
   pbio:
     name: pbio tests
@@ -203,21 +196,3 @@ jobs:
     - name: Build coverage
       run: |
         make $MAKEOPTS -C lib/pbio/test build-coverage/lcov.info
-    - name: Coveralls
-      uses: coverallsapp/github-action@v2
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        file: lib/pbio/test/build-coverage/lcov.info
-        flag-name: PBIO
-        parallel: true
-
-  finish:
-    needs: [virtualhub, pbio]
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Coveralls
-        uses: coverallsapp/github-action@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          parallel-finished: true
-

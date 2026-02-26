@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.0.0b7] - 2026-02-19
+
 ### Added
 - Added supporters to EV3 closing credits.
 
@@ -1298,7 +1300,8 @@ Prerelease changes are documented at [support#48].
 
 
 <!-- diff links for headers -->
-[Unreleased]: https://github.com/pybricks/pybricks-micropython/compare/v4.0.0b6...HEAD
+[Unreleased]: https://github.com/pybricks/pybricks-micropython/compare/v4.0.0b7...HEAD
+[4.0.0b7]: https://github.com/pybricks/pybricks-micropython/compare/v4.0.0b6...v4.0.0b7
 [4.0.0b6]: https://github.com/pybricks/pybricks-micropython/compare/v4.0.0b5...v4.0.0b6
 [4.0.0b5]: https://github.com/pybricks/pybricks-micropython/compare/v4.0.0b4...v4.0.0b5
 [4.0.0b4]: https://github.com/pybricks/pybricks-micropython/compare/v4.0.0b3...v4.0.0b4

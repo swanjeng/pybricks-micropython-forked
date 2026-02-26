@@ -611,6 +611,7 @@ pbio_error_t pbsys_hmi_ev3_ui_closing_credits(pbio_os_state_t *state, void *cont
         // Show the page.
         pbdrv_display_update();
         PBIO_OS_AWAIT_MS(state, &timer, 1000);
+        PBIO_OS_AWAIT_WHILE(state, pbdrv_button_get_pressed() & PBIO_BUTTON_CENTER);
     }
 
     // Display creator info.
@@ -629,6 +630,7 @@ pbio_error_t pbsys_hmi_ev3_ui_closing_credits(pbio_os_state_t *state, void *cont
     pbio_image_draw_image_transparent_from_monochrome(display, &pbio_image_media_pybricks_join, 31, 6, BLACK);
     pbdrv_display_update();
     PBIO_OS_AWAIT_MS(state, &timer, 1500);
+    PBIO_OS_AWAIT_WHILE(state, pbdrv_button_get_pressed() & PBIO_BUTTON_CENTER);
     pbio_image_fill(display, WHITE);
     pbsys_hmi_ev3_ui_draw_pybricks_logo(12, 12, 154, false);
     pbsys_hmi_ev3_ui_draw_centered_text(&pbio_font_terminus_normal_16, "Thanks for your help!", 0, 114);

@@ -5,7 +5,7 @@ from PIL import Image
 import cairosvg
 
 # Take build directory as argument to save generated C files and PNG files.
-parser = argparse.ArgumentParser(description="Convert SVG files to PNG.")
+parser = argparse.ArgumentParser(description="Convert image files to C structs.")
 parser.add_argument("dest", help="Destination build folder for PNG files.")
 args = parser.parse_args()
 

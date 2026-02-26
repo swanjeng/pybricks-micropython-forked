@@ -163,6 +163,7 @@ PYDFU = $(TOP)/tools/pydfu.py
 PYBRICKSDEV = pybricksdev
 METADATA = $(PBTOP)/tools/metadata.py
 MEDIA_CONVERT = $(PBTOP)/lib/pbio/src/image/media.py
+CREDITS_CONVERT = $(PBTOP)/bricks/ev3/make_credits.py
 OPENOCD ?= openocd
 OPENOCD_CONFIG ?= openocd_stm32$(PB_MCU_SERIES_LCASE).cfg
 TEXT0_ADDR ?= 0x08000000
@@ -553,6 +554,7 @@ endif
 ifeq ($(PB_MEDIA),1)
 PYBRICKS_PYBRICKS_SRC_C += $(BUILD)/pb_type_image_attributes.c
 PBIO_SRC_C += $(BUILD)/pbio_image_media.c
+PBIO_SRC_C += $(BUILD)/hmi_ev3_ui_credits.c
 endif
 
 OBJ = $(PY_O)
@@ -671,8 +673,12 @@ FW_SECTIONS :=
 endif
 
 $(BUILD)/pbio_image_media.c $(BUILD)/pb_type_image_attributes.c: $(MEDIA_CONVERT)
-	$(ECHO) "MEDIA generating image media files"
+	$(ECHO) "Generating image media files"
 	$(Q)$(PYTHON) $(MEDIA_CONVERT) $(BUILD)
+
+$(BUILD)/hmi_ev3_ui_credits.c: $(CREDITS_CONVERT)
+	$(ECHO) "Generating EV3 credits file"
+	$(Q)$(PYTHON) $(CREDITS_CONVERT) $(BUILD)
 
 $(BUILD)/firmware.elf $(BUILD)/pybricks-virtualhub: $(LD_FILES) $(OBJ)
 	$(ECHO) "LINK $@"

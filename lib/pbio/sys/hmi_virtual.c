@@ -11,6 +11,7 @@
 
 #include <pbdrv/display.h>
 
+#include <pbio/busy_count.h>
 #include <pbio/button.h>
 #include <pbio/image.h>
 #include <pbio/os.h>
@@ -140,9 +141,9 @@ void pbsys_hmi_init(void) {
 }
 
 void pbsys_hmi_deinit(void) {
-    pbio_image_t *display = pbdrv_display_get_image();
-    pbio_image_fill(display, 0);
-    pbdrv_display_update();
+    static pbio_os_process_t shutdown_animation_process;
+    pbio_busy_count_up();
+    pbio_os_process_start(&shutdown_animation_process, pbsys_hmi_ev3_ui_closing_credits, NULL);
 }
 
 static pbio_error_t run_ui(pbio_os_state_t *state, pbio_os_timer_t *timer) {

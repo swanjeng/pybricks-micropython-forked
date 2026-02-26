@@ -11,14 +11,16 @@
 #include <pbsys/main.h>
 #include <pbsys/status.h>
 
+#include <pbdrv/clock.h>
 #include <pbdrv/display.h>
 
-#include <pbio/light_animation.h>
 #include <pbio/battery.h>
+#include <pbio/busy_count.h>
 #include <pbio/button.h>
 #include <pbio/image.h>
-#include <pbio/version.h>
 #include <pbio/int_math.h>
+#include <pbio/light_animation.h>
+#include <pbio/version.h>
 
 #include "hmi_ev3_ui.h"
 #include "pbio_image_media.h"
@@ -315,7 +317,7 @@ static void pbsys_hmi_ev3_ui_draw_centered_text(const pbio_font_t *font, const c
     pbio_image_rect_t rect;
     pbio_image_bbox_text(font, text, strlen(text), &rect);
     int x = (display->width - rect.width) / 2 + x_offset;
-    pbio_image_draw_text(display, &pbio_font_terminus_normal_16, x, y, text, strlen(text), BLACK);
+    pbio_image_draw_text(display, font, x, y, text, strlen(text), BLACK);
 }
 
 /**
@@ -488,26 +490,22 @@ static void pbsys_hmi_ev3_ui_draw_pybricks_logo(uint32_t x, uint32_t y, uint32_t
 
     pbio_image_t *display = pbdrv_display_get_image();
 
-    uint8_t v = pbdrv_display_get_max_value();
-
     // Rounded rectangles making up the left and right side of the head.
-    pbio_image_fill_rounded_rect(display, sx(0), sy(0), sr(42), sr(84), sr(11), v);
-    pbio_image_fill_rounded_rect(display, sx(112), sy(0), sr(42), sr(84), sr(11), v);
+    pbio_image_fill_rounded_rect(display, sx(0), sy(0), sr(42), sr(84), sr(11), BLACK);
+    pbio_image_fill_rounded_rect(display, sx(112), sy(0), sr(42), sr(84), sr(11), BLACK);
 
     // Forehead, main fill, and jaw.
-    pbio_image_fill_rect(display, sx(14), sy(0), sr(126), sr(14), v);
+    pbio_image_fill_rect(display, sx(14), sy(0), sr(126), sr(14), BLACK);
     pbio_image_fill_rect(display, sx(14), sy(14), sr(126), sr(56), 0);
-    pbio_image_fill_rect(display, sx(28), sy(56), sr(98), sr(14), v);
+    pbio_image_fill_rect(display, sx(28), sy(56), sr(98), sr(14), BLACK);
 
     // Eyes.
-    if (!blink) {
-        pbio_image_fill_circle(display, sx(49), sy(29), sr(10), v);
-        pbio_image_fill_circle(display, sx(106), sy(29), sr(10), v);
-    }
+    pbio_image_fill_circle(display, sx(49), sy(29), sr(10), blink ? WHITE : BLACK);
+    pbio_image_fill_circle(display, sx(106), sy(29), sr(10), blink ? WHITE : BLACK);
 
     // Teeth.
     for (uint32_t i = 0; i < 6; i++) {
-        pbio_image_fill_rect(display, sx(40 + 14 * i), sy(51), sr(4), sr(5), v);
+        pbio_image_fill_rect(display, sx(40 + 14 * i), sy(51), sr(4), sr(5), BLACK);
     }
 }
 
@@ -551,6 +549,106 @@ static uint32_t pbsys_hmi_ev3_ui_run_animation_next(pbio_light_animation_t *anim
     // Render to screen.
     pbdrv_display_update();
     return ANIMATION_REFRESH_MS;
+}
+
+// List of supporters created during build process.
+extern const char *const hmi_ev3_ui_credits_names[];
+extern const size_t hmi_ev3_ui_credits_size;
+
+#define NUM_NAMES_PER_PAGE (7)
+
+static const char *pbsys_hmi_ev3_ui_closing_credits_get_name(size_t page, size_t entry) {
+
+    // Choose first name randomly, keeping order.
+    static size_t random = SIZE_MAX;
+    if (random == SIZE_MAX) {
+        random = pbdrv_clock_get_ms() % hmi_ev3_ui_credits_size;
+    }
+
+    size_t offset = page * NUM_NAMES_PER_PAGE + entry;
+    if (offset >= hmi_ev3_ui_credits_size) {
+        // Last page may contain some empty entries.
+        return NULL;
+    }
+
+    return hmi_ev3_ui_credits_names[(random + offset) % hmi_ev3_ui_credits_size];
+}
+
+pbio_error_t pbsys_hmi_ev3_ui_closing_credits(pbio_os_state_t *state, void *context) {
+
+    pbio_image_t *display = pbdrv_display_get_image();
+
+    static pbio_os_timer_t timer;
+    static size_t page;
+
+    // Pressing cancel exits closing credits.
+    if (pbdrv_button_get_pressed() & PBIO_BUTTON_LEFT_UP) {
+        goto close;
+    }
+
+    PBIO_OS_ASYNC_BEGIN(state);
+
+    // Display all supporter names across several pages.
+    for (page = 0; page < (hmi_ev3_ui_credits_size + NUM_NAMES_PER_PAGE - 1) / NUM_NAMES_PER_PAGE; page++) {
+
+        pbio_image_fill(display, WHITE);
+
+        // Populate page with list of names to fit.
+        for (size_t entry = 0; entry < NUM_NAMES_PER_PAGE; entry++) {
+            const char *name = pbsys_hmi_ev3_ui_closing_credits_get_name(page, entry);
+            if (!name) {
+                continue;
+            }
+            int name_y = 28 + entry * display->print_font->line_height;
+            pbio_image_draw_text(display, &pbio_font_terminus_normal_16, 10, name_y, name, strlen(name), BLACK);
+        }
+
+        // Header with line.
+        const char *thanks = "Thanks to our supporters!";
+        pbio_image_draw_text(display, &pbio_font_mono_8x5_8, 10, 12, thanks, strlen(thanks), BLACK);
+        pbio_image_draw_hline(display, 0, 14, 178, 3);
+
+        // Show the page.
+        pbdrv_display_update();
+        PBIO_OS_AWAIT_MS(state, &timer, 1000);
+    }
+
+    // Display creator info.
+    pbio_image_fill(display, WHITE);
+    const char *thanks = "Made by:";
+    pbio_image_draw_hline(display, 0, 14, 178, 3);
+    pbio_image_draw_text(display, &pbio_font_mono_8x5_8, 10, 12, thanks, strlen(thanks), BLACK);
+    pbsys_hmi_ev3_ui_draw_centered_text(&pbio_font_terminus_normal_16, "Laurens Valk", 0, 40);
+    pbsys_hmi_ev3_ui_draw_centered_text(&pbio_font_terminus_normal_16, "David Lechner", 0, 70);
+    pbsys_hmi_ev3_ui_draw_centered_text(&pbio_font_terminus_normal_16, "Pybricks Community", 0, 100);
+    pbdrv_display_update();
+    PBIO_OS_AWAIT_MS(state, &timer, 1500);
+
+    // Display animated Pybricks thanks message.
+    pbio_image_fill(display, WHITE);
+    pbio_image_draw_image_transparent_from_monochrome(display, &pbio_image_media_pybricks_join, 31, 6, BLACK);
+    pbdrv_display_update();
+    PBIO_OS_AWAIT_MS(state, &timer, 1500);
+    pbio_image_fill(display, WHITE);
+    pbsys_hmi_ev3_ui_draw_pybricks_logo(12, 12, 154, false);
+    pbsys_hmi_ev3_ui_draw_centered_text(&pbio_font_terminus_normal_16, "Thanks for your help!", 0, 114);
+    pbdrv_display_update();
+    PBIO_OS_AWAIT_MS(state, &timer, 500);
+    pbsys_hmi_ev3_ui_draw_pybricks_logo(12, 12, 154, true);
+    pbdrv_display_update();
+    PBIO_OS_AWAIT_MS(state, &timer, 400);
+    pbsys_hmi_ev3_ui_draw_pybricks_logo(12, 12, 154, false);
+    pbdrv_display_update();
+    PBIO_OS_AWAIT_MS(state, &timer, 600);
+
+close:
+
+    // Prepare for shutdown and release lock.
+    pbio_image_fill(display, WHITE);
+    pbdrv_display_update();
+    pbio_busy_count_down();
+
+    PBIO_OS_ASYNC_END(PBIO_SUCCESS);
 }
 
 /**

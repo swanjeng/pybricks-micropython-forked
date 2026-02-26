@@ -5,6 +5,7 @@
 #define _PBSYS_SYS_HMI_EV3_UI_H_
 
 #include <pbio/button.h>
+#include <pbio/os.h>
 
 typedef enum {
     /**
@@ -34,5 +35,7 @@ pbsys_hmi_ev3_ui_action_t pbsys_hmi_ev3_ui_handle_button(pbio_button_flags_t but
 void pbsys_hmi_ev3_ui_draw(void);
 
 void pbsys_hmi_ev3_ui_run_animation_start(void);
+
+pbio_error_t pbsys_hmi_ev3_ui_closing_credits(pbio_os_state_t *state, void *context);
 
 #endif // _PBSYS_SYS_HMI_EV3_UI_H_

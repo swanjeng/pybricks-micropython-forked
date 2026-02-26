@@ -16,6 +16,7 @@
 #include <pbdrv/display.h>
 #include <pbdrv/usb.h>
 
+#include <pbio/busy_count.h>
 #include <pbio/button.h>
 #include <pbio/os.h>
 #include <pbsys/host.h>
@@ -69,9 +70,10 @@ void pbsys_hmi_deinit(void) {
     pbdrv_usb_set_host_connection_changed_callback(NULL);
     pbsys_status_clear(PBIO_PYBRICKS_STATUS_USB_HOST_CONNECTED);
 
-    pbio_image_t *display = pbdrv_display_get_image();
-    pbio_image_fill(display, 0);
-    pbdrv_display_update();
+    // Start shutdown animation and wait for completion.
+    static pbio_os_process_t shutdown_animation_process;
+    pbio_busy_count_up();
+    pbio_os_process_start(&shutdown_animation_process, pbsys_hmi_ev3_ui_closing_credits, NULL);
 }
 
 static pbio_error_t run_ui(pbio_os_state_t *state, pbio_os_timer_t *timer) {

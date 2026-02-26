@@ -43,6 +43,9 @@ static mp_obj_t pb_type_ev3brick_button_pressed(mp_obj_t parent_obj) {
     if (flags & PBIO_BUTTON_DOWN) {
         pressed[num++] = pb_type_button_new(MP_QSTR_DOWN);
     }
+    if (flags & PBIO_BUTTON_LEFT_UP) {
+        pressed[num++] = pb_type_button_new(MP_QSTR_LEFT_UP);
+    }
     return mp_obj_new_set(num, pressed);
 }
 

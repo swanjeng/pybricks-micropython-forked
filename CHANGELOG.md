@@ -4,14 +4,19 @@
 
 ## [Unreleased]
 
+### Added
+- Added supporters to EV3 closing credits.
+
 ### Fixed
 - Fixed EV3 screen animation not closing on user display actions ([support#2585]).
 - Fixed EV3 Touch Sensor not detected it is pressed while plugged in ([support#2589]).
 - Fixed EV3 Large and Medium Motors sometimes not detected ([support#2536]).
+- Fixed EV3 left up button not detected ([support#2592]).
 
 [support#2536]: https://github.com/pybricks/support/issues/2536
 [support#2585]: https://github.com/pybricks/support/issues/2585
 [support#2589]: https://github.com/pybricks/support/issues/2589
+[support#2592]: https://github.com/pybricks/support/issues/2592
 
 ## [4.0.0b6] - 2026-02-19
 
